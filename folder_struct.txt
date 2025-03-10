@@ -1,0 +1,26 @@
+root(x-board)/
+├── client/                  # React frontend
+│   ├── public/              # Static assets (e.g., index.html)
+│   ├── src/                 # React source code
+│   │   ├── components/      # Reusable components (e.g., Toolbar, Whiteboard)
+│   │   ├── hooks/           # Custom React hooks
+│   │   ├── utils/           # Utility functions (e.g., drawing helpers)
+│   │   ├── App.js           # Main React component
+│   │   ├── index.js         # React entry point
+│   │   └── styles.css       # Global styles
+│   ├── package.json         # Frontend dependencies
+│   └── ...                  # Other React config files
+│
+├── server/                  # Express backend
+│   ├── controllers/         # Logic for handling routes/events
+│   ├── models/              # Data models (if using a database)
+│   ├── routes/              # API routes
+│   ├── sockets/             # Socket.IO event handlers
+│   ├── utils/               # Utility functions (e.g., validation)
+│   ├── index.js             # Backend entry point
+│   ├── package.json         # Backend dependencies
+│   └── ...                  # Other backend config files
+│
+├── .gitignore               # Files/folders to ignore in Git
+├── README.md                # Project documentation
+└── package.json             # Root-level dependencies (optional)
