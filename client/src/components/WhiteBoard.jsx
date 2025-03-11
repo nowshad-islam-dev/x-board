@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Stage, Layer, Line } from 'react-konva';
 
-const WhiteBoard = ({ socket }) => {
+const WhiteBoard = ({ socket, tool, color }) => {
   const [lines, setLines] = useState([]);
   const isDrawing = useRef(false);
 
@@ -15,7 +15,7 @@ const WhiteBoard = ({ socket }) => {
     isDrawing.current = true;
 
     const pos = e.target.getStage().getPointerPosition();
-    const newLine = { points: [pos.x, pos.y] };
+    const newLine = { points: [pos.x, pos.y], tool, color };
 
     setLines([...lines, newLine]);
     emitDrawing(newLine); // Emit the new line
@@ -56,10 +56,10 @@ const WhiteBoard = ({ socket }) => {
   }, [socket]);
 
   return (
-    <div className="App">
-      <h3>X-Board</h3>
+    <div className="canvas">
+      <h3 className="text-center font-bold">X-Board</h3>
       <Stage
-        width={window.innerWidth}
+        width={window.innerWidth - 50}
         height={window.innerHeight}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -69,12 +69,15 @@ const WhiteBoard = ({ socket }) => {
           {lines.map((line, i) => (
             <Line
               key={i}
-              stroke="#000"
+              stroke={line.tool === 'eraser' ? '#FFFFFF' : line.color}
               strokeWidth={5}
               points={line.points}
               tension={0.5}
               lineCap="round"
               lineJoin="round"
+              globalCompositeOperation={
+                line.tool === 'eraser' ? 'destination-out' : 'source-over'
+              }
             />
           ))}
         </Layer>
