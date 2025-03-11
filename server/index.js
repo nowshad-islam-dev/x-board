@@ -20,6 +20,11 @@ app.use(cors());
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
+  // Broadcast drawing data to all clients
+  socket.on('drawing', (line) => {
+    socket.broadcast.emit('drawing', line);
+  });
+
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
   });

@@ -5,11 +5,20 @@ const WhiteBoard = ({ socket }) => {
   const [lines, setLines] = useState([]);
   const isDrawing = useRef(false);
 
+  // Emit drawing data to the server
+  const emitDrawing = (line) => {
+    socket.emit('drawing', line);
+  };
+
   // Handle mouse down (start drawing)
   const handleMouseDown = (e) => {
     isDrawing.current = true;
+
     const pos = e.target.getStage().getPointerPosition();
-    setLines([...lines, { points: [pos.x, pos.y] }]);
+    const newLine = { points: [pos.x, pos.y] };
+
+    setLines([...lines, newLine]);
+    emitDrawing(newLine); // Emit the new line
   };
 
   // Handle mouse move (drawing in progress)
@@ -25,6 +34,9 @@ const WhiteBoard = ({ socket }) => {
 
     // Update the lines array
     setLines([...lines.slice(0, -1), lastLine]);
+
+    // Emit the updated line
+    emitDrawing(lastLine);
   };
 
   // Handle mouse up (stop drawing)
@@ -32,15 +44,16 @@ const WhiteBoard = ({ socket }) => {
     isDrawing.current = false;
   };
 
+  // Listen for incoming drawing data
   useEffect(() => {
-    socket.on('connect', () => {
-      console.log('Connected to server:', socket.id);
+    socket.on('drawing', (line) => {
+      setLines((prevLines) => [...prevLines, line]);
     });
 
     return () => {
-      socket.disconnect();
+      socket.off('drawing'); // Remove the listener
     };
-  }, []);
+  }, [socket]);
 
   return (
     <div className="App">
