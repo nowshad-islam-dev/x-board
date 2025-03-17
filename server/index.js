@@ -25,6 +25,15 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('drawing', line);
   });
 
+  // Broadcast undo/redo events to all clients
+  socket.on('undo', () => {
+    socket.broadcast.emit('undo');
+  });
+
+  socket.on('redo', () => {
+    socket.broadcast.emit('redo');
+  });
+
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
   });

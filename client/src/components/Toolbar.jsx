@@ -1,6 +1,18 @@
-const Toolbar = ({ tool, setTool, color, setColor }) => {
+const Toolbar = ({ tool, setTool, color, setColor, undo, redo }) => {
   return (
     <div className="absolute top-2 left-2 z-50 p-2 bg-white shadow-lg rounded-lg flex space-x-2">
+      <button
+        onClick={undo}
+        className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+      >
+        Undo
+      </button>
+      <button
+        onClick={redo}
+        className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+      >
+        Redo
+      </button>
       <button
         onClick={() => setTool('pencil')}
         className={`px-4 py-2 rounded-md ${

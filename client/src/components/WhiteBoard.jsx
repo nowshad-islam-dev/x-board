@@ -1,8 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Stage, Layer, Line } from 'react-konva';
 
-const WhiteBoard = ({ socket, tool, color }) => {
-  const [lines, setLines] = useState([]);
+const WhiteBoard = ({
+  socket,
+  tool,
+  color,
+  lines,
+  setLines,
+  history,
+  setHistory,
+}) => {
   const isDrawing = useRef(false);
 
   // Emit drawing data to the server
@@ -17,7 +24,8 @@ const WhiteBoard = ({ socket, tool, color }) => {
     const pos = e.target.getStage().getPointerPosition();
     const newLine = { points: [pos.x, pos.y], tool, color };
 
-    setLines([...lines, newLine]);
+    setLines((prevLines) => [...prevLines, newLine]);
+    setHistory([]);
     emitDrawing(newLine); // Emit the new line
   };
 
@@ -27,16 +35,19 @@ const WhiteBoard = ({ socket, tool, color }) => {
 
     const stage = e.target.getStage();
     const point = stage.getPointerPosition();
-    let lastLine = lines[lines.length - 1];
 
-    // Add new point to the current line
-    lastLine.points = lastLine.points.concat([point.x, point.y]);
+    setLines((prevLines) => {
+      if (prevLines.length === 0) return prevLines;
 
-    // Update the lines array
-    setLines([...lines.slice(0, -1), lastLine]);
+      const newLines = [...prevLines];
+      const lastLine = { ...newLines[newLines.length - 1] };
 
-    // Emit the updated line
-    emitDrawing(lastLine);
+      lastLine.points = [...lastLine.points, point.x, point.y];
+      newLines[newLines.length - 1] = lastLine;
+
+      emitDrawing(lastLine);
+      return newLines;
+    });
   };
 
   // Handle mouse up (stop drawing)
@@ -51,9 +62,35 @@ const WhiteBoard = ({ socket, tool, color }) => {
     });
 
     return () => {
-      socket.off('drawing'); // Remove the listener
+      socket.off('drawing');
     };
   }, [socket]);
+
+  const handleUndo = () => {
+    if (lines.length > 0) {
+      const lastLine = lines[lines.length - 1];
+      setHistory((prevHistory) => [...prevHistory, lastLine]);
+      setLines((prevLines) => prevLines.slice(0, -1));
+    }
+  };
+
+  const handleRedo = () => {
+    if (history.length > 0) {
+      const lastHistory = history[history.length - 1];
+      setLines((prevLines) => [...prevLines, lastHistory]);
+      setHistory((prevHistory) => prevHistory.slice(0, -1));
+    }
+  };
+  // Listen for undo/redo events from the server
+  useEffect(() => {
+    socket.on('undo', handleUndo);
+    socket.on('redo', handleRedo);
+
+    return () => {
+      socket.off('undo', handleUndo);
+      socket.off('redo', handleRedo);
+    };
+  }, [socket, lines, history]);
 
   return (
     <div className="canvas">
@@ -70,7 +107,7 @@ const WhiteBoard = ({ socket, tool, color }) => {
             <Line
               key={i}
               stroke={line.tool === 'eraser' ? '#FFFFFF' : line.color}
-              strokeWidth={5}
+              strokeWidth={line.tool === 'eraser' ? 10 : 5}
               points={line.points}
               tension={0.5}
               lineCap="round"
